@@ -436,7 +436,7 @@ Exit:
 // Timestamp in milliseconds. Defaults to 1 sec as the first couple frames don't contain color
 static int playback_all(char *input_path, std::string output_filename_prefix = "output")
 {
-    int returnCode = 1, frameNo = 0;
+    int returnCode = 1, frameNo = -1;
     k4a_playback_t playback = NULL;
     k4a_calibration_t calibration;
     k4a_transformation_t transformation = NULL;
@@ -453,12 +453,16 @@ static int playback_all(char *input_path, std::string output_filename_prefix = "
     if (result != K4A_RESULT_SUCCEEDED || playback == NULL)
     {
         printf("Failed to open recording %s\n", input_path);
-        continue;
         goto Exit;
     }
 
     while (true) {
+        frameNo += 1;
         stream_result = k4a_playback_get_next_capture(playback, &capture);
+        if (stream_result == K4A_STREAM_RESULT_EOF) {
+            printf("Reached EOF! Total frame = %d\n", frameNo);
+            goto Exit;
+        }
         if (stream_result != K4A_STREAM_RESULT_SUCCEEDED || capture == NULL)
         {
             printf("Failed to fetch frame\n");
@@ -530,7 +534,7 @@ static int playback_all(char *input_path, std::string output_filename_prefix = "
                         TJPF_BGRA,
                         TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
         {
-            printf("Failed to decompress color frame\n");
+            printf("Failed to decompress color frame %d\n", frameNo);
             if (tjDestroy(tjHandle))
             {
                 printf("Failed to destroy turboJPEG handle\n");
@@ -546,7 +550,7 @@ static int playback_all(char *input_path, std::string output_filename_prefix = "
 
         // Compute color point cloud by warping depth image into color camera geometry
         std::stringstream final_filename;
-        final_filename << output_filename_prefix << "-" << frameNo++ << ".ply";
+        final_filename << output_filename_prefix << "-" << frameNo << ".ply";
         if (point_cloud_depth_to_color(transformation, depth_image, uncompressed_color_image, final_filename.str()) == false)
         {
             printf("Failed to transform depth to color\n");
