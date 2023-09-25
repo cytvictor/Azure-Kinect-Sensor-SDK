@@ -558,32 +558,32 @@ static int playback_all(char *input_path, std::string output_filename_prefix = "
             goto Exit;
         }
         returnCode = 0;
+        if (depth_image != NULL)
+        {
+            k4a_image_release(depth_image);
+        }
+        if (color_image != NULL)
+        {
+            k4a_image_release(color_image);
+        }
+        if (uncompressed_color_image != NULL)
+        {
+            k4a_image_release(uncompressed_color_image);
+        }
+        if (capture != NULL)
+        {
+            k4a_capture_release(capture);
+        }
+        if (transformation != NULL)
+        {
+            k4a_transformation_destroy(transformation);
+        }
     }
 
 Exit:
     if (playback != NULL)
     {
         k4a_playback_close(playback);
-    }
-    if (depth_image != NULL)
-    {
-        k4a_image_release(depth_image);
-    }
-    if (color_image != NULL)
-    {
-        k4a_image_release(color_image);
-    }
-    if (uncompressed_color_image != NULL)
-    {
-        k4a_image_release(uncompressed_color_image);
-    }
-    if (capture != NULL)
-    {
-        k4a_capture_release(capture);
-    }
-    if (transformation != NULL)
-    {
-        k4a_transformation_destroy(transformation);
     }
     return returnCode;
 }
